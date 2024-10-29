@@ -1,13 +1,13 @@
-from flask import Flask,jsonify,request
-import subprocess
-import jwt
-import datetime
-from functools import wraps
+from flask import Flask, request, jsonify
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from pymongo import MongoClient
 from mysql.connector import connect
+import requests
+import subprocess
 
 app=Flask(__name__)
 app.config['SECRET_KEY']="SECRET_KEY"
+jwt=JWTManager(app)
 
 
 mongo_client = MongoClient("mongodb://localhost:27017/")
