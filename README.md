@@ -1,138 +1,222 @@
-Documentation:
+Here's a comprehensive, step-by-step guide to setting up and running your Flask-based SMS Management System, focusing on MongoDB, MySQL, Flask, and React. 
 
-Project Overview:
+---
 
-Project Name: SMS Management and Monitoring System
+# SMS Management System Documentation
 
-Description: A full-stack web application to manage SMS sending sessions across different country-operator pairs, monitor SMS metrics, and alert on critical issues. The system is built with a Flask backend, React frontend, MongoDB and MySQL databases, and uses Prometheus and Grafana for monitoring.
+### Project Overview
+A web-based SMS management system that allows users to control and monitor SMS sessions across different country-operator pairs, using a Flask backend, React frontend, MongoDB, MySQL, and Telegram notifications.
 
-Functional Requirements:
+---
 
-User Authentication: Secure API endpoints using JWT.
-Process Management: Start, stop, and restart SMS sessions programmatically.
+## Table of Contents
+1. [Prerequisites](#prerequisites)
+2. [Project Setup](#project-setup)
+   - Backend Setup (Flask)
+   - Database Setup (MongoDB and MySQL)
+   - Frontend Setup (React)
+3. [Running the Project](#running-the-project)
+4. [API Endpoints](#api-endpoints)
+5. [Testing the System](#testing-the-system)
+6. [Configuration](#configuration)
+7. [Alerts](#alerts)
+8. [Troubleshooting](#troubleshooting)
 
-Country-Operator Management: CRUD operations to add, remove, or update country-operator pairs.
+---
 
-Real-Time Metrics: Retrieve SMS sent, success rates, and errors.
+### 1. Prerequisites
 
-Alerts and Notifications: Send alerts on critical issues using Telegram.
+Ensure the following software is installed:
+- **Python 3.8+**
+- **Node.js & npm**
+- **MongoDB** (running locally or accessible on a server)
+- **MySQL** (running locally or accessible on a server)
+- **Telegram Bot** for alerts (optional but recommended)
 
-Frontend Dashboard: Display metrics, manage sessions, and visualize data.
+---
 
-API Documentation
+### 2. Project Setup
 
-Authentication Endpoints
+#### A. Backend Setup (Flask)
 
-Login
+1. **Clone the repository**:
+   ```bash
+   git clone <repository_url>
+   cd <project_directory>
+   ```
 
-Endpoint: /login
-Method: POST
-Request Body:
+2. **Create a virtual environment**:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate   # On Linux/macOS
+   venv\Scripts\activate      # On Windows
+   ```
 
-json
-{
-  "username": "string",
-  "password": "string"
-}
+3. **Install backend dependencies**:
+   ```bash
+   pip install Flask pymongo mysql-connector-python Flask-JWT-Extended requests
+   ```
 
-Response:
-access_token: JWT token to be used in Authorization headers.
-Protected Endpoints (Use JWT in Authorization header):
+4. **Create `.env` file**:
+   In the project root, create a `.env` file to store configuration variables:
+   ```env
+   JWT_SECRET_KEY="your_jwt_secret"
+   MONGO_URI="mongodb://localhost:27017/"
+   MYSQL_HOST="localhost"
+   MYSQL_USER="your_mysql_user"
+   MYSQL_PASSWORD="your_mysql_password"
+   MYSQL_DB="sms_metrics"
+   TELEGRAM_BOT_TOKEN="your_telegram_bot_token"
+   TELEGRAM_CHAT_ID="your_telegram_chat_id"
+   ```
 
-Add, retrieve, update, delete country-operator pairs.
-Control SMS program sessions.
-Country-Operator Endpoints
-Add Country-Operator
+#### B. Database Setup (MongoDB and MySQL)
 
-Endpoint: /country-operator
-Method: POST
-Request Body:
+1. **MongoDB**:
+   - Start MongoDB if it isn’t running:
+     ```bash
+     mongod
+     ```
+   - MongoDB will automatically create the `sms_config` database and `country_operator` collection when accessed by the app.
 
-json
-{
-  "country": "string",
-  "operator": "string",
-  "is_high_priority": boolean
-}
+2. **MySQL**:
+   - Log into MySQL:
+     ```bash
+     mysql -u root -p
+     ```
+   - Create the `sms_metrics` database and table:
+     ```sql
+     CREATE DATABASE sms_metrics;
+     USE sms_metrics;
+     
+     CREATE TABLE sms_metrics (
+         id INT AUTO_INCREMENT PRIMARY KEY,
+         country VARCHAR(10),
+         operator VARCHAR(50),
+         sms_sent INT,
+         success_rate FLOAT,
+         failures INT,
+         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+     );
+     ```
 
-Response:
-Success message with status code 201.
-Get All Country-Operators
+#### C. Frontend Setup (React)
 
-Endpoint: /country-operator
-Method: GET
+1. **Navigate to the frontend directory**:
+   ```bash
+   cd sms-dashboard
+   ```
 
-Response:
-JSON array of country-operator pairs.
-Delete Country-Operator
+2. **Install frontend dependencies**:
+   ```bash
+   npm install
+   ```
 
-Endpoint: /country-operator/<country>/<operator>
-Method: DELETE
+3. **Set up environment variables**:
+   - Create a `.env` file in the frontend directory and add the backend URL:
+     ```env
+     REACT_APP_API_URL=http://localhost:5000
+     ```
 
-Response:
-Success message with status code 200.
-Alert Endpoints
-Trigger Alert
+---
 
-Endpoint: /alert
-Method: POST
-Request Body:
+### 3. Running the Project
 
-Copy code
-{
-  "message": "string"
-}
+#### A. Start the Backend (Flask)
 
-Response:
-Success message confirming alert sent.
-Database Schema
-MongoDB:
+1. **Activate the virtual environment**:
+   ```bash
+   source venv/bin/activate  # Linux/macOS
+   venv\Scripts\activate     # Windows
+   ```
 
-Database: sms_config
-Collection: country_operator
-Fields:
-country: String
-operator: String
-is_high_priority: Boolean
-MySQL:
+2. **Run the Flask app**:
+   ```bash
+   flask run
+   ```
+   - By default, the app will be accessible at `http://localhost:5000`.
 
-Database: sms_metrics
-Table: sms_metrics
-Fields:
-id: INT (Primary Key)
-country: VARCHAR(10)
-operator: VARCHAR(50)
-sms_sent: INT
-success_rate: FLOAT
-failures: INT
-timestamp: TIMESTAMP (Defaults to current timestamp)
+#### B. Start the Frontend (React)
 
-Frontend Functionality
-Dashboard: Displays real-time SMS metrics, with options to start, stop, and restart programs.
+1. **Navigate to the frontend directory** (if not already there):
+   ```bash
+   cd sms-dashboard
+   ```
 
-Program Control: Interface to manage SMS programs.
-Country-Operator Management: Interface to add, update, and remove country-operator pairs.
-Authentication: Login page secured with JWT.
+2. **Run the React app**:
+   ```bash
+   npm start
+   ```
+   - The frontend will be accessible at `http://localhost:3000`.
 
-Running the Project:
+---
 
-Start MongoDB and MySQL: Ensure both databases are running locally.
+### 4. API Endpoints
 
-Run Flask:
+| Endpoint                  | Method | Description                         | Requires JWT |
+|---------------------------|--------|-------------------------------------|--------------|
+| `/login`                  | POST   | Authenticates user, returns token. | No           |
+| `/country-operator`       | POST   | Adds a country-operator pair.      | Yes          |
+| `/country-operator`       | GET    | Retrieves all pairs.               | Yes          |
+| `/country-operator/<id>`  | DELETE | Deletes a specific pair.           | Yes          |
+| `/alert`                  | POST   | Sends a Telegram alert.            | Yes          |
 
-Update the values of the following in app.py:
-JWT_SECRET_KEY="SECRET_KEY"
-MONGO_URL="mongodb://localhost:27017/"
-MYSQL-host="localhost"
-MYSQL_USER="your_mysql_user"
-MYSQL_PASSWORD="your_mysql_password"
-MYSQL_DB="sms_metrics"
+#### Example API Request
+- **Login**:
+  ```http
+  POST /login
+  {
+    "username": "admin",
+    "password": "password"
+  }
+  ```
+- **Add Country-Operator**:
+  ```http
+  POST /country-operator
+  {
+    "country": "UZ",
+    "operator": "uzmobile",
+    "is_high_priority": true
+  }
+  ```
 
-Start the Flask app with flask run.
+---
 
-Run React:
-Start the frontend with npm start.
+### 5. Testing the System
 
-Trigger Alerts:
-Configure and test Telegram notifications.
-This documentation should provide a comprehensive guide for setting up, running, and maintaining the SMS Management System. Let me know if you'd like more details on any specific part!
+#### Authentication Test
+1. Go to `http://localhost:3000/login`.
+2. Enter your credentials. If successful, you’ll be redirected to the dashboard.
+
+#### CRUD Operations
+- Add, update, or delete country-operator pairs via the frontend or using API requests.
+
+#### Alert Test
+- Trigger an alert by calling the `/alert` endpoint or testing with a critical failure.
+
+---
+
+### 6. Configuration
+
+To adjust settings, modify the `.env` file for each component:
+- **Backend**: Update JWT secret, database credentials, and Telegram bot details.
+- **Frontend**: Update the backend API URL in the `.env` file.
+
+### 7. Alerts
+
+Configure Telegram for real-time alerts:
+1. Create a Telegram bot via BotFather and retrieve the bot token.
+2. Get your chat ID by messaging the bot and using an API to retrieve your ID.
+3. Update `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in the backend `.env` file.
+
+---
+
+### 8. Troubleshooting
+
+- **MongoDB/ MySQL Connection Errors**: Verify credentials and connection strings.
+- **CORS Errors**: Add CORS headers in Flask using `flask-cors` if necessary.
+- **JWT Issues**: Ensure the `JWT_SECRET_KEY` is properly configured.
+
+---
+
+This setup should provide a solid foundation for running and testing the SMS Management System. Let me know if you have any questions or run into issues along the way!

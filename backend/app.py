@@ -4,18 +4,30 @@ from pymongo import MongoClient
 from mysql.connector import connect
 import requests
 import subprocess
+from dotenv import load_dotenv
+import os
 
 app=Flask(__name__)
-app.config['SECRET_KEY']="SECRET_KEY"
 jwt=JWTManager(app)
+app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY")
+MONGO_URI = os.getenv("MONGO_URI")
+MYSQL_HOST = os.getenv("MYSQL_HOST")
+MYSQL_USER = os.getenv("MYSQL_USER")
+MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD")
+MYSQL_DB = os.getenv("MYSQL_DB")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 
-mongo_client = MongoClient("mongodb://localhost:27017/")
+mongo_client = MongoClient(MONGO_URI)
 mongo_db = mongo_client["sms_config"]
 config_collection = mongo_db["country_operator"]
 
 mysql_conn = connect(
-    host="localhost", user="root", password="password", database="sms_metrics"
+    host =MYSQL_HOST,
+    user = MYSQL_USER,
+    password =MYSQL_PASSWORD,
+    database = MYSQL_DB
 )
 
 def token_required(f):
@@ -77,8 +89,8 @@ def login():
 
 
 def send_telegram_alert(message: str):
-    token = "your_telegram_bot_token"
-    chat_id = "your_chat_id"
+    token = TELEGRAM_BOT_TOKEN
+    chat_id = TELEGRAM_CHAT_ID
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     requests.post(url, data={"chat_id": chat_id, "text": message})
 
